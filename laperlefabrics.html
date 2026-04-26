@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Perle Fabrics</title>
+
+<style>
+body{
+margin:0;
+font-family:Tahoma;
+background:#f4f4f4;
+}
+
+.top-bar{
+background:#7d9777;
+color:white;
+text-align:center;
+padding:10px;
+font-size:14px;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:10px 20px;
+background:white;
+}
+
+.logo{
+font-size:22px;
+font-weight:bold;
+cursor:pointer;
+}
+
+.icon{
+cursor:pointer;
+font-size:22px;
+}
+
+.search{
+margin:15px;
+}
+
+.search input{
+width:100%;
+padding:12px;
+border-radius:25px;
+border:none;
+background:#dce5d8;
+}
+
+.products{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+gap:15px;
+padding:15px;
+}
+
+.card{
+background:white;
+padding:10px;
+border-radius:15px;
+text-align:center;
+position:relative;
+}
+
+.card img{
+width:100%;
+border-radius:10px;
+}
+
+.heart{
+position:absolute;
+top:10px;
+left:10px;
+cursor:pointer;
+font-size:20px;
+}
+
+button{
+background:#7d9777;
+border:none;
+padding:10px;
+border-radius:20px;
+color:white;
+cursor:pointer;
+margin-top:8px;
+}
+
+.hidden{
+display:none;
+}
+
+.section{
+padding:20px;
+}
+
+input, select{
+width:100%;
+padding:10px;
+margin:8px 0;
+border-radius:20px;
+border:none;
+background:#dce5d8;
+}
+
+.cart-item{
+background:white;
+padding:10px;
+margin:10px 0;
+border-radius:10px;
+position:relative;
+}
+
+.remove{
+position:absolute;
+left:10px;
+top:10px;
+color:red;
+cursor:pointer;
+}
+
+.total{
+margin-top:20px;
+font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">نضمن لك الجودة العالية في كل قطعة</div>
+
+<div class="header">
+
+<div class="icon" onclick="showCart()">
+<img src="IMG_1501.jpeg" style="width:25px;">
+</div>
+
+<div class="logo" onclick="showHome()">
+<img src="IMG_0980.png" style="height:40px;">
+</div>
+
+<div class="icon" onclick="showFav()">
+<img src="IMG_1500.jpeg" style="width:25px;">
+</div>
+
+</div>
+
+<div class="search">
+<input type="text" placeholder="عن ماذا تبحث؟" onkeyup="searchProduct(this.value)">
+</div>
+
+<!-- الصفحة الرئيسية -->
+<div id="home">
+<div class="products" id="productList"></div>
+</div>
+
+<!-- صفحة المنتج -->
+<div id="productPage" class="hidden section"></div>
+
+<!-- المفضلة -->
+<div id="favPage" class="hidden section">
+<h3>المفضلة</h3>
+<div id="favList"></div>
+</div>
+
+<!-- السلة -->
+<div id="cartPage" class="hidden section">
+<h3>السلة</h3>
+<div id="cartList"></div>
+<div class="total" id="totals"></div>
+<button onclick="checkout()">إتمام الطلب</button>
+</div>
+
+<!-- صفحة المعلومات -->
+<div id="checkoutPage" class="hidden section">
+<h2>أكمل المعلومات الاتية</h2>
+
+<input placeholder="الاسم" id="name">
+<input placeholder="الإمارة" id="emirate">
+<input placeholder="المنطقة" id="area">
+<input placeholder="الرقم" id="phone">
+<input placeholder="رقم البديل" id="phone2">
+<input placeholder="اسم حساب الإنستغرام" id="insta">
+
+<button onclick="sendOrder()">تأكيد الطلب</button>
+</div>
+
+<script>
+
+let products = [
+
+{
+id:1,
+name:"قماش 2",
+cover:"قماش 2/ايطار فارغ منشور انستقرام - 12.png", // صورة الصفحة الرئيسية
+images:[
+"قماش 2/ايطار فارغ منشور انستقرام - 12.png",
+"قماش 2/ايطار فارغ منشور انستقرام - 13.png",
+"قماش 2/ايطار فارغ منشور انستقرام - 14.png",
+"قماش 2/ايطار فارغ منشور انستقرام - 15.png",
+"قماش 2/ايطار فارغ منشور انستقرام - 16.png",
+"قماش 2/ايطار فارغ منشور انستقرام - 17.png"
+]
+},
+
+{
+id:2,
+name: "قماش 1",
+cover:"قماش1/ايطار فارغ منشور انستقرام - 18.png",
+images:[
+"قماش1/ايطار فارغ منشور انستقرام - 18.png",
+"قماش1/ايطار فارغ منشور انستقرام - 19.png",
+"قماش1/ايطار فارغ منشور انستقرام - 20.png",
+"قماش1/ايطار فارغ منشور انستقرام - 21.png",
+"قماش1/ايطار فارغ منشور انستقرام - 22.png",
+"قماش1/ايطار فارغ منشور انستقرام - 23.png"
+]
+}
+
+];
+
+let cart=[];
+let fav=[];
+
+const fabricPrices={
+"قطن طبيعي":140,
+"قماش حرير":200,
+"جاكارد":180,
+"كريب":170,
+"شيفون":145,
+"قطن لبرتي":160
+};
+
+function showHome(){
+hideAll();
+document.getElementById("home").style.display="block";
+}
+
+function showCart(){
+hideAll();
+document.getElementById("cartPage").style.display="block";
+renderCart();
+}
+
+function showFav(){
+hideAll();
+document.getElementById("favPage").style.display="block";
+renderFav();
+}
+
+function hideAll(){
+document.getElementById("home").style.display="none";
+document.getElementById("productPage").style.display="none";
+document.getElementById("favPage").style.display="none";
+document.getElementById("cartPage").style.display="none";
+document.getElementById("checkoutPage").style.display="none";
+}
+
+function renderProducts(list=products){
+
+let html="";
+
+list.forEach(p=>{
+
+html+=`
+<div class="card">
+
+<div class="heart" onclick="toggleFav(${p.id})">
+<img src="images/heart.png" style="width:20px;">
+</div>
+
+<img src="${p.cover}" alt="">
+
+<h4>${p.name}</h4>
+
+<button onclick="openProduct(${p.id})">عرض المنتج</button>
+
+</div>
+`;
+
+});
+
+document.getElementById("productList").innerHTML=html;
+}
+
+renderProducts();
+
+function openProduct(id){
+
+hideAll();
+
+let p=products.find(x=>x.id==id);
+
+document.getElementById("productPage").style.display="block";
+
+let imagesHTML="";
+
+p.images.forEach(img=>{
+imagesHTML+=`
+<img src="${img}"
+style="width:100%;border-radius:10px;margin-bottom:10px;">
+`;
+});
+
+document.getElementById("productPage").innerHTML=`
+
+<h3>${p.name}</h3>
+
+${imagesHTML}
+
+<select id="color">
+<option value="">اختاري اللون</option>
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+</select>
+
+<select id="fabric" onchange="updatePrice()">
+<option value="">نوع القماش</option>
+<option>قطن طبيعي</option>
+<option>قماش حرير</option>
+<option>جاكارد</option>
+<option>كريب</option>
+<option>شيفون</option>
+<option>قطن لبرتي</option>
+</select>
+
+<h3 id="price">0</h3>
+
+<button onclick="addToCart(${id})">إضافة للعربة</button>
+
+`;
+
+}
+
+function updatePrice(){
+let type=document.getElementById("fabric").value;
+if(type){
+document.getElementById("price").innerText=fabricPrices[type]+" درهم";
+}
+}
+
+function addToCart(id){
+let color=document.getElementById("color").value;
+let type=document.getElementById("fabric").value;
+if(!color || !type){
+alert("يجب اختيار اللون ونوع القماش");
+return;
+}
+cart.push({
+id:id,
+name:"قماش "+id,
+color:color,
+type:type,
+price:fabricPrices[type]
+});
+alert("تمت الإضافة للسلة");
+}
+
+function renderCart(){
+let html="";
+let total=0;
+cart.forEach((c,index)=>{
+total+=c.price;
+html+=`
+<div class="cart-item">
+<div class="remove" onclick="removeItem(${index})">إزالة</div>
+${c.name} - ${c.type} - اللون ${c.color}
+<br>${c.price} درهم
+</div>`;
+});
+
+let delivery=30;
+let final=total+delivery;
+document.getElementById("cartList").innerHTML=html;
+document.getElementById("totals").innerHTML=
+`المجموع: ${total} درهم <br>
+التوصيل: ${delivery} درهم <br>
+المجموع الكلي: ${final} درهم`;
+}
+
+function removeItem(i){
+cart.splice(i,1);
+renderCart();
+}
+
+function toggleFav(id){
+if(fav.includes(id)){
+fav=fav.filter(x=>x!=id);
+}else{
+fav.push(id);
+}
+}
+
+function renderFav(){
+
+let html="";
+
+if(fav.length===0){
+html="<p>لا توجد منتجات في المفضلة</p>";
+}
+
+fav.forEach(id=>{
+let p=products.find(x=>x.id==id);
+
+html+=`
+<div class="card">
+<div class="heart" onclick="toggleFav(${p.id})">
+<img src="images/heart.png" style="width:20px;">
+</div>
+<img src="${p.image}" alt="">
+<h4>${p.name}</h4>
+<button onclick="openProduct(${p.id})">إضافة للعربة</button>
+</div>
+`;
+});
+
+document.getElementById("favList").innerHTML=html;
+}
+
+function checkout(){
+hideAll();
+document.getElementById("checkoutPage").style.display="block";
+}
+
+let usedOrderNumbers = [];
+
+function generateOrderNumber(){
+
+let number;
+
+do{
+number = Math.floor(100000 + Math.random() * 900000);
+}while(usedOrderNumbers.includes(number));
+
+usedOrderNumbers.push(number);
+
+return number;
+}
+
+function sendOrder(){
+
+let name = document.getElementById("name").value.trim();
+let phone = document.getElementById("phone").value.trim();
+let area = document.getElementById("area").value.trim();
+
+if(name=="" || phone=="" || area==""){
+alert("يرجى تعبئة جميع البيانات");
+return;
+}
+
+if(cart.length===0){
+alert("السلة فارغة");
+return;
+}
+
+let orderNumber = generateOrderNumber();
+
+let total = cart.reduce((sum,item)=> sum + item.price,0);
+let delivery = 25;
+let final = total + delivery;
+
+let message =
+"🌸 رقم الطلب: " + orderNumber + "\n\n" +
+"👤 الاسم: " + name + "\n" +
+"📞 الهاتف: " + phone + "\n" +
+"📍 المنطقة: " + area + "\n\n" +
+"🛍 تفاصيل الطلب:\n";
+
+cart.forEach((item,i)=>{
+message += (i+1) + "- " + item.name +
+" | لون: " + item.color +
+" | نوع: " + item.fabric +
+" | السعر: " + item.price + "\n";
+});
+
+message += "\n💰 المجموع: " + total +
+"\n🚚 التوصيل: " + delivery +
+"\n✅ المجموع الكلي: " + final;
+
+let telegramURL =
+"https://t.me/alktbe1?text=" + encodeURIComponent(message);
+
+window.open(telegramURL,"_blank");
+
+cart=[];
+updateCounts();
+renderCart();
+
+}
+
+</script>
+
+</body>
+</html>
